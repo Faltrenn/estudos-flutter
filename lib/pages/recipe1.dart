@@ -1,6 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class Rcp1 extends StatelessWidget {
   const Rcp1({super.key});
@@ -18,20 +18,21 @@ class Rcp1 extends StatelessWidget {
           appBar: AppBar(
             title: const Text("Meu app"),
           ),
-          body: const Center(
+          body: Center(
             child: Column(
               children: [
-                Text(
+                const Text(
                   "Boa",
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontSize: 40
-                  ),
+                  style: TextStyle(fontStyle: FontStyle.italic, fontSize: 40),
                 ),
-                Text("noite"),
-                Text("meu"),
-                Text("amigo"),
-                Image(image: NetworkImage("https://cdn.pensador.com/img/imagens/qu/es/que_sua_noite_seja_iluminada_pelos_mais_lindos_sonhos_boa_noite_c.jpg?auto_optimize=low&width=655")),
+                const Text("noite"),
+                const Text("meu"),
+                const Text("amigo"),
+                FadeInImage.memoryNetwork(
+                  placeholder: kTransparentImage,
+                  image:
+                      "https://cdn.pensador.com/img/imagens/qu/es/que_sua_noite_seja_iluminada_pelos_mais_lindos_sonhos_boa_noite_c.jpg?auto_optimize=low&width=655",
+                ),
               ],
             ),
           ),
