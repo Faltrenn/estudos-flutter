@@ -1,5 +1,6 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class Rcp1 extends StatelessWidget {
   const Rcp1({super.key});
@@ -8,7 +9,7 @@ class Rcp1 extends StatelessWidget {
     return MaterialApp(
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
-          fontFamily: "Whisper",
+          fontFamily: "Minecraft",
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.blue,
           ),
@@ -23,7 +24,6 @@ class Rcp1 extends StatelessWidget {
                 Text(
                   "Boa",
                   style: TextStyle(
-                    fontFamily: "Minecraft",
                     fontStyle: FontStyle.italic,
                     fontSize: 40
                   ),
@@ -31,6 +31,7 @@ class Rcp1 extends StatelessWidget {
                 Text("noite"),
                 Text("meu"),
                 Text("amigo"),
+                Image(image: NetworkImage("https://cdn.pensador.com/img/imagens/qu/es/que_sua_noite_seja_iluminada_pelos_mais_lindos_sonhos_boa_noite_c.jpg?auto_optimize=low&width=655")),
               ],
             ),
           ),
@@ -49,7 +50,7 @@ class Rcp1 extends StatelessWidget {
               Expanded(
                   child: IconButton(
                 onPressed: () {},
-                icon: const Icon(Icons.tv),
+                icon: const Icon(Icons.sunny),
               )),
             ],
           ),
