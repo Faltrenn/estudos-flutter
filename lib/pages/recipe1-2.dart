@@ -1,9 +1,8 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 
-class Rcp2 extends StatelessWidget {
-  const Rcp2({super.key});
+class Rcp1_2 extends StatelessWidget {
+  const Rcp1_2({super.key});
 
   @override
   Widget build(BuildContext context) {
