@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import "package:teste/pages/recipe1-3.dart";
+import "package:teste/pages/recipe2.dart";
 import "pages/recipe1.dart";
 import "pages/recipe1-2.dart";
 
@@ -8,6 +9,7 @@ void main() {
     const Rcp1(),
     const Rcp1_2(),
     const Rcp1_3(),
+		const Rcp2(),
   ];
-  runApp(recipes[2]);
+  runApp(recipes[3]);
 }
