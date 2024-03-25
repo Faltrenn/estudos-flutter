@@ -32,6 +32,7 @@ class MyNavItems extends StatelessWidget {
     Drink("Cafés", Icon(Icons.coffee_outlined)),
     Drink("Cervejas", Icon(Icons.local_drink_outlined)),
     Drink("Nações", Icon(Icons.flag_outlined)),
+    Drink("Nações", Icon(Icons.flag_outlined)),
   ];
 
   @override
