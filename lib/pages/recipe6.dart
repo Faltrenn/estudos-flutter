@@ -5,10 +5,11 @@ class DataTableInfo {
   var jsonObjects = [];
   List<String> propertyNames = [];
   List<String> columnNames = [];
-  DataTableInfo(
-      {this.jsonObjects = const [],
-      this.propertyNames = const [],
-      this.columnNames = const []});
+  DataTableInfo({
+    this.jsonObjects = const [],
+    this.propertyNames = const [],
+    this.columnNames = const [],
+  });
 }
 
 class DataService {
@@ -77,11 +78,14 @@ class Rcp6 extends StatelessWidget {
         body: ValueListenableBuilder(
           valueListenable: dataService.tableStateNotifier,
           builder: (_, value, __) {
-            return DataTableWidget(
-              jsonObjects: value.jsonObjects,
-              propertyNames: value.propertyNames,
-              columnNames: value.columnNames,
-            );
+            if (value.jsonObjects.isNotEmpty) {
+              return DataTableWidget(
+                jsonObjects: value.jsonObjects,
+                propertyNames: value.propertyNames,
+                columnNames: value.columnNames,
+              );
+            }
+						return SizedBox.shrink();
           },
         ),
         bottomNavigationBar:
