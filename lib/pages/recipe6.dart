@@ -85,7 +85,7 @@ class Rcp6 extends StatelessWidget {
                 columnNames: value.columnNames,
               );
             }
-						return SizedBox.shrink();
+						return const SizedBox.shrink();
           },
         ),
         bottomNavigationBar:
@@ -104,13 +104,14 @@ class NewNavBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    var state = useState(1);
+    var state = useState(-1);
     return BottomNavigationBar(
         onTap: (index) {
           state.value = index;
           itemSelectedCallback(index);
         },
-        currentIndex: state.value,
+				fixedColor: state.value == -1 ? Colors.grey[600] : null,
+        currentIndex: state.value != -1 ? state.value : 0,
         items: const [
           BottomNavigationBarItem(
             label: "Cafés",
