@@ -9,6 +9,7 @@ import "package:teste/pages/recipe5.dart";
 import "package:teste/pages/recipe6.dart";
 import "package:teste/pages/recipe7.dart";
 import "package:teste/pages/recipe8.dart";
+import "package:teste/pages/recipe8a.dart";
 
 void main() {
   final recipes = [
@@ -22,7 +23,8 @@ void main() {
 		const Rcp6(),			//7
 		const Rcp7(),			//8
 		const Rcp8(),			//9
+		Rcp8a(),					//10
   ];
-  runApp(recipes[9]);
+  runApp(recipes[10]);
 }
 
