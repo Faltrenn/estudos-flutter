@@ -12,8 +12,8 @@ class DataService {
   void carregar(index) {
     final funcoes = [carregarCafes, carregarCervejas, carregarNacoes];
     tableStateNotifier.value = {
-      "status": TableStatus.loading,
-      "dataObjects": []
+      'status': TableStatus.loading,
+      'dataObjects': []
     };
     funcoes[index]();
   }
@@ -37,8 +37,8 @@ class DataService {
       var beersJson = jsonDecode(jsonString);
       tableStateNotifier.value = {
         "status": TableStatus.ready,
-        "dataObjects": [beersJson],
-				"propertyNames": ["name","style","ibu"]
+        "dataObjects": beersJson,
+        'propertyNames': ["name", "style", "ibu"]
       };
     });
   }
@@ -63,22 +63,22 @@ class Rcp8 extends StatelessWidget {
               builder: (_, value, __) {
                 switch (value['status']) {
                   case TableStatus.idle:
-                    return const Text("Toque algum botão");
+                    return Text("Toque algum botão");
 
                   case TableStatus.loading:
-                    return const CircularProgressIndicator();
+                    return CircularProgressIndicator();
 
                   case TableStatus.ready:
                     return DataTableWidget(
                         jsonObjects: value['dataObjects'],
                         propertyNames: value["propertyNames"],
-                        columnNames: const ["Nome", "Estilo", "IBU"]);
+                        columnNames: ["Nome", "Estilo", "IBU"]);
 
                   case TableStatus.error:
-                    return const Text("Lascou");
+                    return Text("Lascou");
                 }
 
-                return const Text("...");
+                return Text("...");
               }),
           bottomNavigationBar:
               NewNavBar(itemSelectedCallback: dataService.carregar),
@@ -146,4 +146,3 @@ class DataTableWidget extends StatelessWidget {
             .toList());
   }
 }
-
