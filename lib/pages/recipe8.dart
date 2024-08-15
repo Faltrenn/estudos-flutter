@@ -10,7 +10,7 @@ class DataService {
       ValueNotifier({"status": TableStatus.idle, "dataObjects": []});
 
   void carregar(index) {
-    final funcoes = [carregarCafes, carregarCervejas, carregarNacoes];
+    final funcoes = [carregarCafes, carregarCervejas, carregarNacoes, carregarVeiculos];
     tableStateNotifier.value = {
       'status': TableStatus.loading,
       'dataObjects': []
@@ -18,12 +18,48 @@ class DataService {
     funcoes[index]();
   }
 
-  void carregarCafes() {
-    return;
+  Future<void> carregarCafes() async {
+    var coffeeUri = Uri(
+        scheme: 'https',
+        host: 'random-data-api.com',
+        path: 'api/coffee/random_coffee',
+        queryParameters: {'size': '5'});
+
+    try {
+      var jsonString = await http.read(coffeeUri);
+      var coffeeJson = jsonDecode(jsonString);
+      tableStateNotifier.value = {
+        "status": TableStatus.ready,
+        "dataObjects": coffeeJson,
+        "propertyNames": ["blend_name", "origin", "variety"],
+        "columnNames": ["Blend", "Origin", "Variety"]
+      };
+    } catch (e) {
+      tableStateNotifier.value = {
+        "status": TableStatus.error,
+        "message": "Falha ao carregar dados."
+      };
+    }
   }
 
   void carregarNacoes() {
-    return;
+    var nationsUri = Uri(
+        scheme: 'https',
+        host: 'random-data-api.com',
+        path: 'api/nation/random_nation',
+        queryParameters: {'size': '5'});
+
+    http.read(nationsUri).then((jsonString) {
+      var nationJson = jsonDecode(jsonString);
+      tableStateNotifier.value = {
+        "status": TableStatus.ready,
+        "dataObjects": nationJson,
+        "propertyNames": ["nationality", "language", "capital"],
+        "columnNames": ["Nationality", "Language", "Capital"]
+      };
+    }).catchError((e) {
+      tableStateNotifier.value = {"status": TableStatus.error};
+    });
   }
 
   void carregarCervejas() {
@@ -38,8 +74,31 @@ class DataService {
       tableStateNotifier.value = {
         "status": TableStatus.ready,
         "dataObjects": beersJson,
-        'propertyNames': ["name", "style", "ibu"]
+        "propertyNames": ["name", "style", "ibu"],
+        "columnNames": ["Name", "style", "ibu"]
       };
+    }).catchError((e) {
+      tableStateNotifier.value = {"status": TableStatus.error};
+    });
+  }
+
+  void carregarVeiculos() {
+    var vehicleUri = Uri(
+        scheme: 'https',
+        host: 'random-data-api.com',
+        path: 'api/vehicle/random_vehicle',
+        queryParameters: {'size': '5'});
+
+    http.read(vehicleUri).then((jsonString) {
+      var vehicleJson = jsonDecode(jsonString);
+      tableStateNotifier.value = {
+        "status": TableStatus.ready,
+        "dataObjects": vehicleJson,
+        "propertyNames": ["make_and_model", "transmission", "car_type"],
+        "columnNames": ["Model", "transmission", "type"]
+      };
+    }).catchError((e) {
+      tableStateNotifier.value = {"status": TableStatus.error};
     });
   }
 }
@@ -63,22 +122,24 @@ class Rcp8 extends StatelessWidget {
               builder: (_, value, __) {
                 switch (value['status']) {
                   case TableStatus.idle:
-                    return Text("Toque algum botão");
+                    return const Center(
+                        child: Text(
+                            "Escolha alguma das opções abaixo e aguarde as informações"));
 
                   case TableStatus.loading:
-                    return CircularProgressIndicator();
+                    return const Center(child: CircularProgressIndicator());
 
                   case TableStatus.ready:
                     return DataTableWidget(
                         jsonObjects: value['dataObjects'],
                         propertyNames: value["propertyNames"],
-                        columnNames: ["Nome", "Estilo", "IBU"]);
+                        columnNames: value["columnNames"]);
 
                   case TableStatus.error:
-                    return Text("Lascou");
+                    return const Center(child: Text("Houve um erro na busca dos dados"));
                 }
 
-                return Text("...");
+                return const Text("...");
               }),
           bottomNavigationBar:
               NewNavBar(itemSelectedCallback: dataService.carregar),
@@ -111,23 +172,23 @@ class NewNavBar extends HookWidget {
           BottomNavigationBarItem(
               label: "Cervejas", icon: Icon(Icons.local_drink_outlined)),
           BottomNavigationBarItem(
-              label: "Nações", icon: Icon(Icons.flag_outlined))
+              label: "Nações", icon: Icon(Icons.flag_outlined)),
+          BottomNavigationBarItem(
+              label: "Veículos", icon: Icon(Icons.car_crash))
         ]);
   }
 }
 
 class DataTableWidget extends StatelessWidget {
   final List jsonObjects;
-
   final List<String> columnNames;
-
   final List<String> propertyNames;
 
   const DataTableWidget(
       {super.key,
       this.jsonObjects = const [],
-      this.columnNames = const ["Nome", "Estilo", "IBU"],
-      this.propertyNames = const ["name", "style", "ibu"]});
+      this.columnNames = const [],
+      this.propertyNames = const []});
 
   @override
   Widget build(BuildContext context) {
