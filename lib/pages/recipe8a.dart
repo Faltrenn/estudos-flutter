@@ -8,22 +8,83 @@ enum TableStatus { idle, loading, ready, error }
 enum ItemType { beer, coffee, nation, none }
 
 class DataService {
-  final ValueNotifier<Map<String, dynamic>> tableStateNotifier =
-      ValueNotifier({'status': TableStatus.idle, 'dataObjects': []});
+  final ValueNotifier<Map<String, dynamic>> tableStateNotifier = ValueNotifier({
+    'status': TableStatus.idle,
+    'dataObjects': [],
+    'itemType': ItemType.none
+  });
+
+  final funcoes = [
+    {
+      "path": "coffee/random_coffee",
+      "itemType": ItemType.coffee,
+      'propertyNames': ["blend_name", "origin", "variety"],
+      'columnNames': ["Nome", "Origem", "Tipo"]
+    },
+    {
+      "path": "beer/random_beer",
+      "itemType": ItemType.beer,
+      'propertyNames': ["name", "style", "ibu"],
+      'columnNames': ["Nome", "Estilo", "IBU"]
+    },
+    {
+      "path": "nation/random_nation",
+      "itemType": ItemType.nation,
+      'propertyNames': ["nationality", "capital", "language", "national_sport"],
+      'columnNames': ["Nome", "Capital", "Idioma", "Esporte"]
+    },
+  ];
 
   void carregar(index) {
-    final funcoes = [carregarCafes, carregarCervejas, carregarNacoes];
+    if (tableStateNotifier.value["itemType"] != funcoes[index]["itemType"]) {
+      tableStateNotifier.value = {
+        'status': TableStatus.loading,
+        'dataObjects': [],
+        'itemType': funcoes[index]["itemType"]
+      };
+    } else if (tableStateNotifier.value['status'] == TableStatus.loading)
+      return;
 
-    tableStateNotifier.value = {
-      'status': TableStatus.loading,
-      'dataObjects': [],
-      'itemType': ItemType.none
-    };
+    if (tableStateNotifier.value['itemType'] != funcoes[index]["itemType"]) {
+      tableStateNotifier.value = {
+        'status': TableStatus.loading,
+        'dataObjects': [],
+        'itemType': funcoes[index]["itemType"]
+      };
+    }
 
-    funcoes[index]();
+    var uri = Uri(
+        scheme: 'https',
+        host: 'random-data-api.com',
+        path: 'api/${funcoes[index]["path"]! as String}',
+        queryParameters: {'size': '10'});
+
+    http.read(uri).then((jsonString) {
+      var json = jsonDecode(jsonString);
+
+      tableStateNotifier.value = {
+        'itemType': funcoes[index]["itemType"],
+        'status': TableStatus.ready,
+        "dataObjects": [...tableStateNotifier.value['dataObjects'], ...json],
+        'propertyNames': funcoes[index]["propertyNames"],
+        'columnNames': funcoes[index]["columnNames"]
+      };
+    });
   }
 
   void carregarCafes() {
+    //ignorar solicitação se uma requisição já estiver em curso
+
+    if (tableStateNotifier.value['status'] == TableStatus.loading) return;
+
+    if (tableStateNotifier.value['itemType'] != ItemType.coffee) {
+      tableStateNotifier.value = {
+        'status': TableStatus.loading,
+        'dataObjects': [],
+        'itemType': ItemType.coffee
+      };
+    }
+
     var coffeesUri = Uri(
         scheme: 'https',
         host: 'random-data-api.com',
@@ -32,10 +93,15 @@ class DataService {
 
     http.read(coffeesUri).then((jsonString) {
       var coffeesJson = jsonDecode(jsonString);
-      coffeesJson = [
-        ...tableStateNotifier.value['dataObjects'],
-        ...coffeesJson
-      ];
+
+      //se já houver cafés no estado da tabela...
+
+      if (tableStateNotifier.value['status'] != TableStatus.loading) {
+        coffeesJson = [
+          ...tableStateNotifier.value['dataObjects'],
+          ...coffeesJson
+        ];
+      }
 
       tableStateNotifier.value = {
         'itemType': ItemType.coffee,
@@ -46,55 +112,6 @@ class DataService {
       };
     });
   }
-
-  void carregarNacoes() {
-    var nationsUri = Uri(
-        scheme: 'https',
-        host: 'random-data-api.com',
-        path: 'api/nation/random_nation',
-        queryParameters: {'size': '10'});
-
-    http.read(nationsUri).then((jsonString) {
-      var nationsJson = jsonDecode(jsonString);
-      nationsJson = [
-        ...tableStateNotifier.value['dataObjects'],
-        ...nationsJson
-      ];
-      tableStateNotifier.value = {
-        'itemType': ItemType.nation,
-        'status': TableStatus.ready,
-        'dataObjects': nationsJson,
-        'propertyNames': [
-          "nationality",
-          "capital",
-          "language",
-          "national_sport"
-        ],
-        'columnNames': ["Nome", "Capital", "Idioma", "Esporte"]
-      };
-    });
-  }
-
-  void carregarCervejas() {
-    var beersUri = Uri(
-        scheme: 'https',
-        host: 'random-data-api.com',
-        path: 'api/beer/random_beer',
-        queryParameters: {'size': '10'});
-
-    http.read(beersUri).then((jsonString) {
-      var beersJson = jsonDecode(jsonString);
-      beersJson = [...tableStateNotifier.value['dataObjects'], ...beersJson];
-
-      tableStateNotifier.value = {
-        'itemType': ItemType.beer,
-        'status': TableStatus.ready,
-        'dataObjects': beersJson,
-        'propertyNames': ["name", "style", "ibu"],
-        'columnNames': ["Nome", "Estilo", "IBU"]
-      };
-    });
-  }
 }
 
 final dataService = DataService();
@@ -102,9 +119,9 @@ final dataService = DataService();
 class Rcp8a extends StatelessWidget {
   Rcp8a({super.key});
   final functionsMap = {
-    ItemType.beer: dataService.carregarCervejas,
-    ItemType.coffee: dataService.carregarCafes,
-    ItemType.nation: dataService.carregarNacoes
+    ItemType.beer: () => dataService.carregar(1),
+    ItemType.coffee: () => dataService.carregar(0),
+    ItemType.nation: () => dataService.carregar(2)
   };
 
   @override
@@ -114,17 +131,26 @@ class Rcp8a extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         home: Scaffold(
           appBar: AppBar(
-            title: const Text("Dicas"),
+            // ignore: prefer_interpolation_to_compose_strings
+            title: ValueListenableBuilder(
+              valueListenable: dataService.tableStateNotifier,
+              builder: (context, value, child) {
+                return Text(
+                  "Dicas (${value['dataObjects'].length})",
+                );
+              },
+            ),
           ),
           body: ValueListenableBuilder(
               valueListenable: dataService.tableStateNotifier,
               builder: (_, value, __) {
                 switch (value['status']) {
                   case TableStatus.idle:
-                    return Center(child: Text("Toque algum botão, abaixo..."));
+                    return const Center(
+                        child: Text("Toque algum botão, abaixo..."));
 
                   case TableStatus.loading:
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
 
                   case TableStatus.ready:
                     return ListWidget(
@@ -134,10 +160,10 @@ class Rcp8a extends StatelessWidget {
                     );
 
                   case TableStatus.error:
-                    return Text("Lascou");
+                    return const Text("Lascou");
                 }
 
-                return Text("...");
+                return const Text("...");
               }),
           bottomNavigationBar:
               NewNavBar(itemSelectedCallback: dataService.carregar),
@@ -148,8 +174,8 @@ class Rcp8a extends StatelessWidget {
 class NewNavBar extends HookWidget {
   final _itemSelectedCallback;
 
-  NewNavBar({itemSelectedCallback})
-      : _itemSelectedCallback = itemSelectedCallback ?? (int) {}
+  const NewNavBar({super.key, itemSelectedCallback})
+      : _itemSelectedCallback = itemSelectedCallback ?? (int);
 
   @override
   Widget build(BuildContext context) {
@@ -177,13 +203,11 @@ class NewNavBar extends HookWidget {
 
 class ListWidget extends HookWidget {
   final dynamic _scrollEndedCallback;
-
   final List jsonObjects;
-
   final List<String> propertyNames;
-
-  ListWidget(
-      {this.jsonObjects = const [],
+  const ListWidget(
+      {super.key,
+      this.jsonObjects = const [],
       this.propertyNames = const [],
       void Function()? scrollEndedCallback})
       : _scrollEndedCallback = scrollEndedCallback ?? false;
@@ -194,14 +218,15 @@ class ListWidget extends HookWidget {
 
     useEffect(() {
       controller.addListener(() {
-        if (controller.position.pixels == controller.position.maxScrollExtent)
-          print('end of scroll');
-        if (_scrollEndedCallback is Function) _scrollEndedCallback();
+        if (controller.position.pixels == controller.position.maxScrollExtent) {
+          if (_scrollEndedCallback is Function) _scrollEndedCallback();
+        }
       });
+      return null;
     }, [controller]);
     return ListView.separated(
       controller: controller,
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       separatorBuilder: (_, __) => Divider(
         height: 5,
         thickness: 2,
@@ -211,8 +236,9 @@ class ListWidget extends HookWidget {
       ),
       itemCount: jsonObjects.length + 1,
       itemBuilder: (_, index) {
-        if (index == jsonObjects.length)
-          return Center(child: LinearProgressIndicator());
+        if (index == jsonObjects.length) {
+          return const Center(child: LinearProgressIndicator());
+        }
         var title = jsonObjects[index][propertyNames[0]];
 
         var content = propertyNames
@@ -223,17 +249,18 @@ class ListWidget extends HookWidget {
         return Card(
             shadowColor: Theme.of(context).primaryColor,
             child: Column(children: [
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
               //a primeira propriedade vai em negrito
 
-              Text("${title}\n", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("$title\n",
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
 
               //as demais vão normais
 
               Text(content),
 
-              SizedBox(height: 10)
+              const SizedBox(height: 10)
             ]));
       },
     );
