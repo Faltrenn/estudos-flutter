@@ -21,141 +21,71 @@ class DataService {
             : n;
   }
 
+  get numberOfItems {
+    return _numberOfItems;
+  }
+
   ValueNotifier<Map<String, dynamic>> tableStateNotifier = ValueNotifier({
     'status': TableStatus.idle,
     'dataObjects': [],
     'itemType': ItemType.none
   });
 
+  final funcoes = [
+    {
+      "path": "coffee/random_coffee",
+      "itemType": ItemType.coffee,
+      'propertyNames': ["blend_name", "origin", "variety"],
+      'columnNames': ["Nome", "Origem", "Tipo"]
+    },
+    {
+      "path": "beer/random_beer",
+      "itemType": ItemType.beer,
+      'propertyNames': ["name", "style", "ibu"],
+      'columnNames': ["Nome", "Estilo", "IBU"]
+    },
+    {
+      "path": "nation/random_nation",
+      "itemType": ItemType.nation,
+      'propertyNames': ["nationality", "capital", "language", "national_sport"],
+      'columnNames': ["Nome", "Capital", "Idioma", "Esporte"]
+    },
+  ];
+
   void carregar(index) {
-    final funcoes = [carregarCafes, carregarCervejas, carregarNacoes];
-
-    funcoes[index]();
-  }
-
-  void carregarCafes() {
-    //ignorar solicitação se uma requisição já estiver em curso
-
-    if (tableStateNotifier.value['status'] == TableStatus.loading) return;
-
-    if (tableStateNotifier.value['itemType'] != ItemType.coffee) {
+    if (tableStateNotifier.value["itemType"] != funcoes[index]["itemType"]) {
       tableStateNotifier.value = {
         'status': TableStatus.loading,
         'dataObjects': [],
-        'itemType': ItemType.coffee
+        'itemType': funcoes[index]["itemType"]
       };
+    } else if (tableStateNotifier.value['status'] == TableStatus.loading) {
+      return;
     }
 
-    var coffeesUri = Uri(
-        scheme: 'https',
-        host: 'random-data-api.com',
-        path: 'api/coffee/random_coffee',
-        queryParameters: {'size': '$_numberOfItems'});
-
-    http.read(coffeesUri).then((jsonString) {
-      var coffeesJson = jsonDecode(jsonString);
-
-      //se já houver cafés no estado da tabela...
-
-      if (tableStateNotifier.value['status'] != TableStatus.loading) {
-        coffeesJson = [
-          ...tableStateNotifier.value['dataObjects'],
-          ...coffeesJson
-        ];
-      }
-
-      tableStateNotifier.value = {
-        'itemType': ItemType.coffee,
-        'status': TableStatus.ready,
-        'dataObjects': coffeesJson,
-        'propertyNames': ["blend_name", "origin", "variety"],
-        'columnNames': ["Nome", "Origem", "Tipo"]
-      };
-    });
-  }
-
-  void carregarNacoes() {
-    //ignorar solicitação se uma requisição já estiver em curso
-
-    if (tableStateNotifier.value['status'] == TableStatus.loading) return;
-
-    if (tableStateNotifier.value['itemType'] != ItemType.nation) {
+    if (tableStateNotifier.value['itemType'] != funcoes[index]["itemType"]) {
       tableStateNotifier.value = {
         'status': TableStatus.loading,
         'dataObjects': [],
-        'itemType': ItemType.nation
+        'itemType': funcoes[index]["itemType"]
       };
     }
 
-    var nationsUri = Uri(
+    var uri = Uri(
         scheme: 'https',
         host: 'random-data-api.com',
-        path: 'api/nation/random_nation',
+        path: 'api/${funcoes[index]["path"]! as String}',
         queryParameters: {'size': '$_numberOfItems'});
 
-    http.read(nationsUri).then((jsonString) {
-      var nationsJson = jsonDecode(jsonString);
-
-      //se já houver nações no estado da tabela...
-
-      if (tableStateNotifier.value['status'] != TableStatus.loading) {
-        nationsJson = [
-          ...tableStateNotifier.value['dataObjects'],
-          ...nationsJson
-        ];
-      }
+    http.read(uri).then((jsonString) {
+      var json = jsonDecode(jsonString);
 
       tableStateNotifier.value = {
-        'itemType': ItemType.nation,
+        'itemType': funcoes[index]["itemType"],
         'status': TableStatus.ready,
-        'dataObjects': nationsJson,
-        'propertyNames': [
-          "nationality",
-          "capital",
-          "language",
-          "national_sport"
-        ],
-        'columnNames': ["Nome", "Capital", "Idioma", "Esporte"]
-      };
-    });
-  }
-
-  void carregarCervejas() {
-    //ignorar solicitação se uma requisição já estiver em curso
-
-    if (tableStateNotifier.value['status'] == TableStatus.loading) return;
-
-    //emitir estado loading se items em exibição não forem cervejas
-
-    if (tableStateNotifier.value['itemType'] != ItemType.beer) {
-      tableStateNotifier.value = {
-        'status': TableStatus.loading,
-        'dataObjects': [],
-        'itemType': ItemType.beer
-      };
-    }
-
-    var beersUri = Uri(
-        scheme: 'https',
-        host: 'random-data-api.com',
-        path: 'api/beer/random_beer',
-        queryParameters: {'size': '$_numberOfItems'});
-
-    http.read(beersUri).then((jsonString) {
-      var beersJson = jsonDecode(jsonString);
-
-      //se já houver cervejas no estado da tabela...
-
-      if (tableStateNotifier.value['status'] != TableStatus.loading) {
-        beersJson = [...tableStateNotifier.value['dataObjects'], ...beersJson];
-      }
-
-      tableStateNotifier.value = {
-        'itemType': ItemType.beer,
-        'status': TableStatus.ready,
-        'dataObjects': beersJson,
-        'propertyNames': ["name", "style", "ibu"],
-        'columnNames': ["Nome", "Estilo", "IBU"]
+        "dataObjects": [...tableStateNotifier.value['dataObjects'], ...json],
+        'propertyNames': funcoes[index]["propertyNames"],
+        'columnNames': funcoes[index]["columnNames"]
       };
     });
   }

@@ -11,9 +11,9 @@ class Rcp9 extends StatelessWidget {
         theme: ThemeData(primarySwatch: Colors.deepPurple),
         debugShowCheckedModeBanner: false,
         home: Scaffold(
-          appBar: AppBar(title: const Text("Dicas"), actions: [
+          appBar: AppBar(title: const Text("Dica"), actions: [
             PopupMenuButton(
-              itemBuilder: (_) => [3, 7, 15]
+              itemBuilder: (_) => [DataService.MIN_N_ITEMS, DataService.DEFAULT_N_ITEMS, DataService.MAX_N_ITEMS]
                   .map((num) => PopupMenuItem(
                         value: num,
                         child: Text("Carregar $num itens por vez"),
