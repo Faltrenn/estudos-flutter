@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../util/decididor.dart';
 import '../util/ordenador.dart';
 
 var valores = [3, 7, 15];
@@ -203,11 +204,14 @@ class DataService {
   }
 }
 
-class DecididorJson {
+final dataService = DataService();
+
+class DecididorJson extends Decididor {
   final String prop;
   final bool crescente;
   DecididorJson(this.prop, [this.crescente = true]);
 
+  @override
   bool precisaTrocarAtualPeloProximo(atual, proximo) {
     try {
       final ordemCorreta = crescente ? [atual, proximo] : [proximo, atual];
@@ -218,4 +222,3 @@ class DecididorJson {
   }
 }
 
-final dataService = DataService();

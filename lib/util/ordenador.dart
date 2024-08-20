@@ -1,7 +1,7 @@
-import '../data/data_service.dart';
+import 'decididor.dart';
 
 class Ordenador {
-  List ordenarItem(List item, DecididorJson decididor) {
+  List ordenarItem(List item, Decididor decididor) {
     List itemOrdenadas = List.of(item);
 
     bool trocouAoMenosUm;
@@ -59,3 +59,4 @@ class Ordenador {
     return itemOrdenadas;
   }
 }
+
