@@ -9,44 +9,27 @@ var valores = [3, 7, 15];
 enum TableStatus { idle, loading, ready, error }
 
 enum ItemType {
-  address,
-  computer,
-  app,
+  beer,
+  coffee,
+  nation,
   none;
 
-  String get asString => name;
+  String get asString => '$name';
 
-  List<String> get columns => this == computer
-      ? ["Plataforma", "Tipo", "Os", "Stack"]
-      : this == address
-          ? [
-              "Cidade",
-              "Nome da rua",
-              "Endereço da rua",
-              "Endereço secundário",
-              "Número"
-            ]
-          : this == app
-              ? ["Nome", "Versão", "Criador", "Padrão de regras"]
+  List<String> get columns => this == coffee
+      ? ["Nome", "Origem", "Tipo"]
+      : this == beer
+          ? ["Nome", "Estilo", "IBU"]
+          : this == nation
+              ? ["Nome", "Capital", "Idioma", "Esporte"]
               : [];
 
-  List<String> get properties => this == computer
-      ? ["platform", "type", "os", "stack"]
-      : this == address
-          ? [
-              "city",
-              "street_name",
-              "street_address",
-              "secondary_address",
-              "building_number"
-            ]
-          : this == app
-              ? [
-                  "app_name",
-                  "app_version",
-                  "app_author",
-                  "app_semantic_version"
-                ]
+  List<String> get properties => this == coffee
+      ? ["blend_name", "origin", "variety"]
+      : this == beer
+          ? ["name", "style", "ibu"]
+          : this == nation
+              ? ["nationality", "capital", "language", "national_sport"]
               : [];
 }
 
@@ -74,12 +57,12 @@ class DataService {
   });
 
   void carregar(index) {
-    final params = [ItemType.computer, ItemType.address, ItemType.app];
+    final params = [ItemType.coffee, ItemType.beer, ItemType.nation];
 
     carregarPorTipo(params[index]);
   }
 
-  void ordenarEstadoAtual(String propriedade, [bool cresc = true]) {
+  void ordenarEstadoAtual(final String propriedade) {
     List objetos = tableStateNotifier.value['dataObjects'] ?? [];
 
     if (objetos == []) return;
@@ -88,17 +71,10 @@ class DataService {
 
     var objetosOrdenados = [];
 
-    bool crescente = cresc;
+    final type = tableStateNotifier.value['itemType'];
 
-    bool precisaTrocarAtualPeloProximo(atual, proximo) {
-      final ordemCorreta = crescente ? [atual, proximo] : [proximo, atual];
-      return ordemCorreta[0][propriedade]
-              .compareTo(ordemCorreta[1][propriedade]) >
-          0;
-    }
-
-    //objetosOrdenados = ord.ordenarItem(objetos, DecididorJson(propriedade));
-    objetosOrdenados = ord.ordenarItem2(objetos, precisaTrocarAtualPeloProximo);
+    objetosOrdenados = ord.ordenarFuderoso(
+        objetos, propriedade);
 
     emitirEstadoOrdenado(objetosOrdenados, propriedade);
   }
@@ -216,6 +192,50 @@ class DecididorJson extends Decididor {
     try {
       final ordemCorreta = crescente ? [atual, proximo] : [proximo, atual];
       return ordemCorreta[0][prop].compareTo(ordemCorreta[1][prop]) > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+}
+
+class DecididorCervejaNomeCrescente extends Decididor {
+  @override
+  bool precisaTrocarAtualPeloProximo(atual, proximo) {
+    try {
+      return atual["name"].compareTo(proximo["name"]) > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+}
+
+class DecididorCervejaEstiloCrescente extends Decididor {
+  @override
+  bool precisaTrocarAtualPeloProximo(atual, proximo) {
+    try {
+      return atual["style"].compareTo(proximo["style"]) > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+}
+
+class DecididorCervejaNomeDecrescente extends Decididor {
+  @override
+  bool precisaTrocarAtualPeloProximo(atual, proximo) {
+    try {
+      return atual["name"].compareTo(proximo["name"]) < 0;
+    } catch (error) {
+      return false;
+    }
+  }
+}
+
+class DecididorCervejaEstiloDecrescente extends Decididor {
+  @override
+  bool precisaTrocarAtualPeloProximo(atual, proximo) {
+    try {
+      return atual["style"].compareTo(proximo["style"]) < 0;
     } catch (error) {
       return false;
     }
